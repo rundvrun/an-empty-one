@@ -1,3 +1,5 @@
 BlazalR/*/obj/**
 BlazalR/*/bin/**
 .vscode/**/*
+*/.vs/**/*
+*.csproj.user

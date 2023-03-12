@@ -1,97 +1,132 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
 @using BlazalR.Shared.Model
+@using BlazalR.Shared.Protobuf
 @inject NavigationManager Navigation
+@inject WeatherForecasts.WeatherForecastsClient WeatherForecastsClient
 @implements IAsyncDisposable
 
 <PageTitle>BlazalR</PageTitle>
 
 <style>
-    .msg-onerror {
-        color: red;
-    }
+	.msg-onerror {
+		color: red;
+	}
 
-    .msg-onpick {
-        color: blue;
-    }
+	.msg-onpick {
+		color: blue;
+	}
 </style>
 
+<h1>Weather forecast</h1>
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (forecasts == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Date</th>
+				<th>Temp. (C)</th>
+				<th>Summary</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var forecast in forecasts)
+			{
+				<tr>
+					<td>@forecast.DateTimeStamp.ToDateTime().ToShortDateString()</td>
+					<td>@forecast.TemperatureC</td>
+					<td>@forecast.Summary</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
 <div class="form-group">
-    <label>
-        User:
-        <input @bind="userInput" />
-    </label>
+	<label>
+		User:
+		<input @bind="userInput" />
+	</label>
 </div>
 <div class="form-group">
-    <label>
-        Item:
-        <input @bind="messageInput" size="50" />
-    </label>
+	<label>
+		Item:
+		<input @bind="messageInput" size="50" />
+	</label>
 </div>
 <button @onclick="Pick" disabled="@(!IsConnected)">Pick</button>
 
 <hr>
 
 <ul id="messagesList">
-    @foreach (var message in messages)
-    {
-        <li class="@MessageStyle(message.type)">@message.value</li>
-    }
+	@foreach (var message in messages)
+	{
+		<li class="@MessageStyle(message.type)">@message.value</li>
+	}
 </ul>
 
 @code {
-    private HubConnection? hubConnection;
-    private List<(string type, string value)> messages = new();
-    private string? userInput;
-    private string? messageInput;
+	private HubConnection? hubConnection;
+	private List<(string type, string value)> messages = new();
+	private string? userInput;
+	private string? messageInput;
+	private IList<WeatherForecastModel> forecasts;
 
-    private string MessageStyle(string type) => $"msg-{type}".ToLower();
+	private string MessageStyle(string type) => $"msg-{type}".ToLower();
 
-    const string onPick = nameof(MessageType.OnPick);
-    const string onError = nameof(MessageType.OnError);
+	const string onPick = nameof(MessageType.OnPick);
+	const string onError = nameof(MessageType.OnError);
 
-    protected override async Task OnInitializedAsync()
-    {
-        hubConnection = new HubConnectionBuilder()
-        .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
-        .Build();
+	protected override async Task OnInitializedAsync()
+	{
+		forecasts = (await WeatherForecastsClient.GetWeatherAsync(new WeatherForecastModel())).Forecasts;
 
-        hubConnection.On<MessageType.OnPick>(onPick, (pickData) =>
-        {
-            var encodedMsg = $"{pickData.Username} picked {pickData.Count} {pickData.ItemName}";
-            messages.Add((onPick, encodedMsg));
-            StateHasChanged();
-        });
+		hubConnection = new HubConnectionBuilder()
+		.WithUrl(Navigation.ToAbsoluteUri("/chathub"))
+		.Build();
 
-        hubConnection.On<MessageType.OnError>(onError, (err) =>
-        {
-            var encodedMsg = $"{err.Username} error: {err.Message}";
-            messages.Add((onError, encodedMsg));
-            StateHasChanged();
-        });
+		hubConnection.On<MessageType.OnPick>(onPick, (pickData) =>
+		{
+			var encodedMsg = $"{pickData.Username} picked {pickData.Count} {pickData.ItemName}";
+			messages.Add((onPick, encodedMsg));
+			StateHasChanged();
+		});
 
-        await hubConnection.StartAsync();
-    }
+		hubConnection.On<MessageType.OnError>(onError, (err) =>
+		{
+			var encodedMsg = $"{err.Username} error: {err.Message}";
+			messages.Add((onError, encodedMsg));
+			StateHasChanged();
+		});
 
-    private async Task Pick()
-    {
-        if (string.IsNullOrEmpty(userInput))
-        {
-            return;
-        }
-        if (hubConnection is not null)
-        {
-            await hubConnection.SendAsync("PickItem", userInput, messageInput);
-        }
-    }
+		await hubConnection.StartAsync();
+	}
 
-    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
+	private async Task Pick()
+	{
+		if (string.IsNullOrEmpty(userInput))
+		{
+			return;
+		}
+		if (hubConnection is not null)
+		{
+			await hubConnection.SendAsync("PickItem", userInput, messageInput);
+		}
+	}
 
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection is not null)
-        {
-            await hubConnection.DisposeAsync();
-        }
-    }
+	public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
+
+	public async ValueTask DisposeAsync()
+	{
+		if (hubConnection is not null)
+		{
+			await hubConnection.DisposeAsync();
+		}
+	}
 }

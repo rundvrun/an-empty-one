@@ -1,0 +1,19 @@
+syntax = "proto3"; 
+// replace namespace with your own
+option csharp_namespace = "BlazalR.Shared.Protobuf"; 
+package WeatherForecast; 
+import "google/protobuf/timestamp.proto"; 
+
+service WeatherForecasts {
+	rpc GetWeather (WeatherForecastModel) returns (WeatherReply); 
+} 
+
+message WeatherReply { 
+	repeated WeatherForecastModel forecasts = 1; 
+} 
+
+message WeatherForecastModel { 
+	google.protobuf.Timestamp dateTimeStamp = 1; 
+	int32 temperatureC = 2; 
+	string summary = 3; 
+}

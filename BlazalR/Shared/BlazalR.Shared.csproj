@@ -8,5 +8,15 @@
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
+	<Protobuf Include="**\*.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Google.Protobuf" Version="3.22.1" />
+	<PackageReference Include="Grpc.Net.Client" Version="2.51.0" />
+	<PackageReference Include="Grpc.Tools" Version="2.52.0">
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+	</PackageReference>
   </ItemGroup>
 </Project>
