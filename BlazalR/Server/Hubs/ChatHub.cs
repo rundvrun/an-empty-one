@@ -20,29 +20,16 @@ public class ChatHub : Hub
 		{
 			if (_counter.Counter[strItem] == 0)
 			{
-				await Clients.All.SendAsync(onError, new MessageType.OnError
-				{
-					Username = user,
-					Message = $"{strItem} is run out"
-				});
+				await Clients.All.SendAsync(onError, new MessageType.OnError(user, $"{strItem} is run out"));
 				return;
 			}
 
 			count = int.Min(_counter.Counter[strItem], count);
 			_counter.Counter[strItem] -= count;
 
-			await Clients.All.SendAsync(onPick, new MessageType.OnPick
-			{
-				Username = user,
-				ItemName = strItem,
-				Count = count
-			});
+			await Clients.All.SendAsync(onPick, new MessageType.OnPick(user, strItem, count));
 			return;
 		}
-		await Clients.All.SendAsync(onError, new MessageType.OnError
-		{
-			Username = user,
-			Message = "Invalid item"
-		});
+		await Clients.All.SendAsync(onError, new MessageType.OnError(user, "Invalid item!"));
 	}
 }
