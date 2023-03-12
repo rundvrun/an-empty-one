@@ -47,8 +47,8 @@
 
 	private string MessageStyle(string type) => $"msg-{type}".ToLower();
 
-	const string onPick = nameof(BlazalREnum.MessageType.OnPick);
-	const string onError = nameof(BlazalREnum.MessageType.OnError);
+	const string onPick = nameof(MessageType.OnPick);
+	const string onError = nameof(MessageType.OnError);
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,16 +56,16 @@
             .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
             .Build();
 
-        hubConnection.On<string, string, int>(onPick, (user, item, count) =>
+        hubConnection.On<MessageType.OnPick>(onPick, (pickData) =>
         {
-            var encodedMsg = $"{user} picked {count} {item}";
+            var encodedMsg = $"{pickData.Username} picked {pickData.Count} {pickData.ItemName}";
             messages.Add((onPick, encodedMsg));
             StateHasChanged();
         });
 
-		hubConnection.On<string, string>(onError, (user, errorMessage) =>
+		hubConnection.On<MessageType.OnError>(onError, (err) =>
         {
-            var encodedMsg = $"{user} error: {errorMessage}";
+            var encodedMsg = $"{err.Username} error: {err.Message}";
             messages.Add((onError, encodedMsg));
             StateHasChanged();
         });
