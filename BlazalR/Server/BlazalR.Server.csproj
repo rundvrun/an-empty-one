@@ -14,6 +14,11 @@
     <ProjectReference Include="..\Client\BlazalR.Client.csproj" />
     <ProjectReference Include="..\Shared\BlazalR.Shared.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Using Include="System.Collections.Concurrent"></Using>
+    <Using Include="BlazalR.Shared.Model"></Using>
+  </ItemGroup>
 
 
 </Project>

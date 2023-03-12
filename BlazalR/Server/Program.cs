@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.ResponseCompression;
+using BlazalR.Server.Model;
 using BlazalR.Server.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Services.AddResponseCompression(opts =>
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
         new[] { "application/octet-stream" });
 });
+builder.Services.AddSingleton<ICounter, InMemoryCounter>();
 
 var app = builder.Build();
 

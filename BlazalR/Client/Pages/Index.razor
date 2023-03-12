@@ -1,9 +1,20 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
+@using BlazalR.Shared.Model
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
 
 <PageTitle>BlazalR</PageTitle>
+
+<style>
+	.msg-onerror {
+		color: red;
+	}
+
+	.msg-onpick {
+		color: blue;
+	}
+</style>
 
 <div class="form-group">
     <label>
@@ -13,26 +24,31 @@
 </div>
 <div class="form-group">
     <label>
-        Message:
+        Item:
         <input @bind="messageInput" size="50" />
     </label>
 </div>
-<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+<button @onclick="Pick" disabled="@(!IsConnected)">Pick</button>
 
 <hr>
 
 <ul id="messagesList">
     @foreach (var message in messages)
     {
-        <li>@message</li>
+        <li class="@MessageStyle(message.type)">@message.value</li>
     }
 </ul>
 
 @code {
     private HubConnection? hubConnection;
-    private List<string> messages = new();
+    private List<(string type, string value)> messages = new();
     private string? userInput;
     private string? messageInput;
+
+	private string MessageStyle(string type) => $"msg-{type}".ToLower();
+
+	const string onPick = nameof(BlazalREnum.MessageType.OnPick);
+	const string onError = nameof(BlazalREnum.MessageType.OnError);
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,26 +56,36 @@
             .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
             .Build();
 
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        hubConnection.On<string, string, int>(onPick, (user, item, count) =>
         {
-            var encodedMsg = $"{user}: {message}";
-            messages.Add(encodedMsg);
+            var encodedMsg = $"{user} picked {count} {item}";
+            messages.Add((onPick, encodedMsg));
+            StateHasChanged();
+        });
+
+		hubConnection.On<string, string>(onError, (user, errorMessage) =>
+        {
+            var encodedMsg = $"{user} error: {errorMessage}";
+            messages.Add((onError, encodedMsg));
             StateHasChanged();
         });
 
         await hubConnection.StartAsync();
     }
 
-    private async Task Send()
+    private async Task Pick()
     {
+		if (string.IsNullOrEmpty(userInput))
+		{
+			return;
+		}
         if (hubConnection is not null)
-            {
-                await hubConnection.SendAsync("SendMessage", userInput, messageInput);
-            }
+		{
+			await hubConnection.SendAsync("PickItem", userInput, messageInput);
+		}
     }
 
-    public bool IsConnected =>
-        hubConnection?.State == HubConnectionState.Connected;
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
 
     public async ValueTask DisposeAsync()
     {
