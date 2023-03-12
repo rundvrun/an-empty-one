@@ -1,2 +1,3 @@
 BlazalR/*/obj/**
 BlazalR/*/bin/**
+.vscode/**/*
