@@ -28,6 +28,6 @@ public class ChatHub : Hub
 			await Clients.All.SendAsync(onPick, user, strItem, count);
 			return;
 		}
-		await Clients.All.SendAsync(onPick, user, "Invalid item");
+		await Clients.All.SendAsync(onError, user, "Invalid item");
 	}
 }
