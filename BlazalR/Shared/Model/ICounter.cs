@@ -3,5 +3,5 @@ namespace BlazalR.Shared.Model;
 
 public interface ICounter
 {
-	public ConcurrentDictionary<string, int> Counter { get; }
+    public ConcurrentDictionary<string, int> Counter { get; }
 }

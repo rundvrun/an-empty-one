@@ -7,13 +7,13 @@
 <PageTitle>BlazalR</PageTitle>
 
 <style>
-	.msg-onerror {
-		color: red;
-	}
+    .msg-onerror {
+        color: red;
+    }
 
-	.msg-onpick {
-		color: blue;
-	}
+    .msg-onpick {
+        color: blue;
+    }
 </style>
 
 <div class="form-group">
@@ -45,16 +45,16 @@
     private string? userInput;
     private string? messageInput;
 
-	private string MessageStyle(string type) => $"msg-{type}".ToLower();
+    private string MessageStyle(string type) => $"msg-{type}".ToLower();
 
-	const string onPick = nameof(MessageType.OnPick);
-	const string onError = nameof(MessageType.OnError);
+    const string onPick = nameof(MessageType.OnPick);
+    const string onError = nameof(MessageType.OnError);
 
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
-            .Build();
+        .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
+        .Build();
 
         hubConnection.On<MessageType.OnPick>(onPick, (pickData) =>
         {
@@ -63,7 +63,7 @@
             StateHasChanged();
         });
 
-		hubConnection.On<MessageType.OnError>(onError, (err) =>
+        hubConnection.On<MessageType.OnError>(onError, (err) =>
         {
             var encodedMsg = $"{err.Username} error: {err.Message}";
             messages.Add((onError, encodedMsg));
@@ -75,14 +75,14 @@
 
     private async Task Pick()
     {
-		if (string.IsNullOrEmpty(userInput))
-		{
-			return;
-		}
+        if (string.IsNullOrEmpty(userInput))
+        {
+            return;
+        }
         if (hubConnection is not null)
-		{
-			await hubConnection.SendAsync("PickItem", userInput, messageInput);
-		}
+        {
+            await hubConnection.SendAsync("PickItem", userInput, messageInput);
+        }
     }
 
     public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
