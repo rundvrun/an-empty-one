@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.SignalR;
 namespace BlazalR.Server.Hubs;
+
+using Microsoft.AspNetCore.SignalR;
+using BlazalR.Server.Extensions;
 
 public class ChatHub : Hub
 {
-	const string onPick = nameof(MessageType.OnPick);
-	const string onError = nameof(MessageType.OnError);
 	readonly ICounter _counter;
 	public ChatHub(ICounter counter) : base()
 	{
@@ -20,16 +20,16 @@ public class ChatHub : Hub
 		{
 			if (_counter.Counter[strItem] == 0)
 			{
-				await Clients.All.SendAsync(onError, new MessageType.OnError(user, $"{strItem} is run out"));
+				await Clients.All.SendMessageAsync<MessageType.OnError>(new(user, $"{strItem} is run out"));
 				return;
 			}
 
 			count = int.Min(_counter.Counter[strItem], count);
 			_counter.Counter[strItem] -= count;
 
-			await Clients.All.SendAsync(onPick, new MessageType.OnPick(user, strItem, count));
+			await Clients.All.SendMessageAsync<MessageType.OnPick>(new(user, strItem, count));
 			return;
 		}
-		await Clients.All.SendAsync(onError, new MessageType.OnError(user, "Invalid item!"));
+		await Clients.All.SendMessageAsync<MessageType.OnError>(new(user, "Invalid item!"));
 	}
 }

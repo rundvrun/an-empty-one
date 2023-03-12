@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using BlazalR.Shared.Model
 @using BlazalR.Shared.Protobuf
+@using BlazalR.Client.Extensions
 @inject NavigationManager Navigation
 @inject WeatherForecasts.WeatherForecastsClient WeatherForecastsClient
 @implements IAsyncDisposable
@@ -76,12 +77,9 @@ else
 	private List<(string type, string value)> messages = new();
 	private string? userInput;
 	private string? messageInput;
-	private IList<WeatherForecastModel> forecasts;
+	private IList<WeatherForecastModel>? forecasts;
 
 	private string MessageStyle(string type) => $"msg-{type}".ToLower();
-
-	const string onPick = nameof(MessageType.OnPick);
-	const string onError = nameof(MessageType.OnError);
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -91,17 +89,17 @@ else
 		.WithUrl(Navigation.ToAbsoluteUri("/chathub"))
 		.Build();
 
-		hubConnection.On<MessageType.OnPick>(onPick, (pickData) =>
+		hubConnection.OnMessage<MessageType.OnPick>(pickData =>
 		{
 			var encodedMsg = $"{pickData.Username} picked {pickData.Count} {pickData.ItemName}";
-			messages.Add((onPick, encodedMsg));
+			messages.Add((nameof(MessageType.OnPick), encodedMsg));
 			StateHasChanged();
 		});
 
-		hubConnection.On<MessageType.OnError>(onError, (err) =>
+		hubConnection.OnMessage<MessageType.OnError>(err =>
 		{
 			var encodedMsg = $"{err.Username} error: {err.Message}";
-			messages.Add((onError, encodedMsg));
+			messages.Add((nameof(MessageType.OnError), encodedMsg));
 			StateHasChanged();
 		});
 
